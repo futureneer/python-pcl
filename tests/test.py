@@ -307,3 +307,17 @@ class TestOctreePointCloud(unittest.TestCase):
         self.assertEqual(len(self.t.get_occupied_voxel_centers()), voxels_len)
         self.t.delete_voxel_at_point(good_point)
         self.assertEqual(len(self.t.get_occupied_voxel_centers()), voxels_len - 1)
+
+class TestPrincipalCurvatures(unittest.TestCase):
+
+    def setUp(self):
+        self.p = pcl.PointCloud()
+        self.p.from_file("tests/table_scene_mug_stereo_textured_noplane.pcd")
+
+    def testSegment(self):
+        directions, eigen_values = self.p.calc_principal_curvatures(50)
+
+        self.assertEqual(len(directions), self.p.size)
+        self.assertEqual(len(eigen_values), self.p.size)
+
+

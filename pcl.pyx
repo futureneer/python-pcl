@@ -284,17 +284,18 @@ cdef class PointCloud:
         # all points
         while i < n:
             indices[i] = i
+            i += 1
         cdef cnp.ndarray[float, ndim=2] directions = np.empty([n,3], dtype=np.float32)
         cdef cnp.ndarray[float, ndim=2] eigen_values = np.empty([n,2], dtype=np.float32)
 
         cdef int p_idx = 0
         while p_idx < n:
             pce.computePointPrincipalCurvatures(normals, p_idx, indices, x, y, z, pc1, pc2)
-            directions[i,0] = x
-            directions[i,1] = y
-            directions[i,2] = z
-            eigen_values[i,0] = pc1
-            eigen_values[i,1] = pc2
+            directions[p_idx,0] = x
+            directions[p_idx,1] = y
+            directions[p_idx,2] = z
+            eigen_values[p_idx,0] = pc1
+            eigen_values[p_idx,1] = pc2
             p_idx += 1
 
         return directions, eigen_values
