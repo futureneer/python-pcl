@@ -27,10 +27,19 @@ cdef extern from "pcl/point_types.h" namespace "pcl":
         float z
     cdef struct Normal:
         pass
+    cdef struct PrincipalCurvatures:
+        pass
 
 cdef extern from "pcl/features/normal_3d.h" namespace "pcl":
     cdef cppclass NormalEstimation[T, N]:
         NormalEstimation()
+
+cdef extern from "pcl/features/principal_curvatures.h" namespace "pcl":
+    cdef cppclass PrincipalCurvaturesEstimation[PointInT, PointNT, PointOutT]:
+        PrincipalCurvaturesEstimation()
+        void computePointPrincipalCurvatures (PointCloud[PointNT], int, vector[int], float&, float&, float&, float&, float&)	
+
+ctypedef PrincipalCurvaturesEstimation[PointXYZ,Normal,PrincipalCurvatures] PrincipalCurvaturesEstimation_t
 
 cdef extern from "pcl/segmentation/sac_segmentation.h" namespace "pcl":
     cdef cppclass SACSegmentationFromNormals[T, N]:

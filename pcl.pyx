@@ -268,6 +268,37 @@ cdef class PointCloud:
 
         return seg
 
+    def calc_principal_curvatures(self,  int ksearch=-1, double searchRadius=-1.0):
+        """
+        Calculate principal curvature estimation for each point of the input cloud
+        """
+        cdef cpp.PrincipalCurvaturesEstimation_t pce
+        cdef cpp.PointNormalCloud_t normals
+        mpcl_compute_normals(deref(self.thisptr), ksearch, searchRadius, normals)
+        
+        cdef float x,y,z,pc1,pc2
+        cdef int n = self.thisptr.size()
+        cdef vector[int] indices
+        indices.resize(n)
+        cdef int i = 0
+        # all points
+        while i < n:
+            indices[i] = i
+        cdef cnp.ndarray[float, ndim=2] directions = np.empty([n,3], dtype=np.float32)
+        cdef cnp.ndarray[float, ndim=2] eigen_values = np.empty([n,2], dtype=np.float32)
+
+        cdef int p_idx = 0
+        while p_idx < n:
+            pce.computePointPrincipalCurvatures(normals, p_idx, indices, x, y, z, pc1, pc2)
+            directions[i,0] = x
+            directions[i,1] = y
+            directions[i,2] = z
+            eigen_values[i,0] = pc1
+            eigen_values[i,1] = pc2
+            p_idx += 1
+
+        return directions, eigen_values
+
     def make_statistical_outlier_filter(self):
         """
         Return a pcl.StatisticalOutlierRemovalFilter object with this object set as the input-cloud

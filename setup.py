@@ -17,6 +17,7 @@ setup(name='python-pcl',
                                "usb-1.0", "pcl_filters", "pcl_sample_consensus",
                                "pcl_features", "pcl_surface", "pcl_search", "pcl_kdtree", "pcl_octree",
                                "flann_cpp", "pcl_common"],
+                    define_macros=[("EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET", "1")],
                     language="c++")],
       cmdclass={'build_ext': build_ext}
 )
