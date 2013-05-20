@@ -275,21 +275,21 @@ cdef class PointCloud:
         cdef cpp.PrincipalCurvaturesEstimation_t pce
         cdef cpp.PointNormalCloud_t normals
         mpcl_compute_normals(deref(self.thisptr), ksearch, searchRadius, normals)
+        kd = self.make_kdtree_flann()
+        cdef int n = self.size
+
+        k_indices, k_distances = kd.nearest_k_search_for_cloud(self, ksearch)
         
         cdef float x,y,z,pc1,pc2
-        cdef int n = self.thisptr.size()
         cdef vector[int] indices
-        indices.resize(n)
-        cdef int i = 0
-        # all points
-        while i < n:
-            indices[i] = i
-            i += 1
+        indices.resize(ksearch)
         cdef cnp.ndarray[float, ndim=2] directions = np.empty([n,3], dtype=np.float32)
         cdef cnp.ndarray[float, ndim=2] eigen_values = np.empty([n,2], dtype=np.float32)
 
         cdef int p_idx = 0
         while p_idx < n:
+            for i in range(ksearch):
+                indices[i] = k_indices[p_idx][i]
             pce.computePointPrincipalCurvatures(normals, p_idx, indices, x, y, z, pc1, pc2)
             directions[p_idx,0] = x
             directions[p_idx,1] = y
