@@ -268,6 +268,23 @@ cdef class PointCloud:
 
         return seg
 
+    def make_spin_image_feature(self, double spimgSearchRadius, int ksearch=-1, double searchRadius=-1.0):
+        """
+        @param spimgSearchRadius local frame for spin image building
+        Return a pcl.SpinImageEstimation object with this object set as the input-cloud
+        """
+        cdef cpp.PointNormalCloud_t normals
+        mpcl_compute_normals(deref(self.thisptr), ksearch, searchRadius, normals)
+
+        seg = SpinImageEstimation()
+        cdef cpp.SpinImageEstimation_t *cseg = <cpp.SpinImageEstimation_t *>seg.me
+        cseg.setRadiusSearch(spimgSearchRadius)
+        cdef cpp.PointCloud_t *ccloud = <cpp.PointCloud_t *>self.thisptr
+        cseg.setInputCloud(ccloud.makeShared())
+        cseg.setInputNormals (normals.makeShared());
+
+        return seg
+
     def calc_principal_curvatures(self,  int ksearch=-1, double searchRadius=-1.0):
         """
         Calculate principal curvature estimation for each point of the input cloud
@@ -626,3 +643,58 @@ cdef class OctreePointCloud:
         p.y = point[1]
         p.z = point[2]
         self.me.deleteVoxelAtPoint(p)
+
+cdef class SpinImageEstimation:
+    cdef cpp.SpinImageEstimation_t *me
+   
+    def __cinit__(self):
+        """
+        Constructs octree pointcloud with given resolution at lowest octree level
+        """ 
+        self.me = new cpp.SpinImageEstimation_t()
+    
+    def __dealloc__(self):
+        del self.me
+
+    def set_image_width(self, unsigned int width):
+        self.me.setImageWidth(width)
+
+    def set_input_cloud(self, PointCloud pc):
+        """
+        Provide a pointer to the input data set.
+        """
+        cdef cpp.PointCloud_t *ccloud = <cpp.PointCloud_t *>pc.thisptr
+        self.me.setInputCloud(ccloud.makeShared())
+
+    def set_input_normals(self, PointCloud pc):
+        """
+        Provide a pointer to the input data set.
+        """
+        cdef cpp.PointNormalCloud_t *ccloud = <cpp.PointNormalCloud_t *>pc.thisptr
+        self.me.setInputNormals(ccloud.makeShared())
+
+    def set_indices(self, indices):
+        """
+        Provide a pointer to the input data set.
+        """
+        cdef cpp.PointIndices* v = new cpp.PointIndices()
+        for i in indices:
+            v.indices.push_back(i)
+        self.me.setIndices(cpp.PointIndicesPtr_t(v))
+
+    def compute(self):
+        """
+        Provide a pointer to the input data set.
+        """
+        cdef cpp.PointSpinImageCloud_t ccloud
+        self.me.compute(ccloud)
+        rs = []
+        cdef cpp.Histogram hist
+        for i in range(ccloud.size()):
+            hist = ccloud[i]
+            out = []
+            for b in hist.histogram:
+                out.append(b)
+            rs.append(out)
+        return rs
+

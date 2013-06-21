@@ -29,6 +29,8 @@ cdef extern from "pcl/point_types.h" namespace "pcl":
         pass
     cdef struct PrincipalCurvatures:
         pass
+    cdef struct Histogram "pcl::Histogram<153>":
+        float histogram[153]
 
 cdef extern from "pcl/features/normal_3d.h" namespace "pcl":
     cdef cppclass NormalEstimation[T, N]:
@@ -40,6 +42,20 @@ cdef extern from "pcl/features/principal_curvatures.h" namespace "pcl":
         void computePointPrincipalCurvatures (PointCloud[PointNT], int, vector[int], float&, float&, float&, float&, float&)	
 
 ctypedef PrincipalCurvaturesEstimation[PointXYZ,Normal,PrincipalCurvatures] PrincipalCurvaturesEstimation_t
+
+cdef extern from "pcl/features/spin_image.h" namespace "pcl":
+    cdef cppclass SpinImageEstimation[PointInT, PointNT, PointOutT]:
+        SpinImageEstimation()
+        void setImageWidth(unsigned int)
+        void setInputCloud (shared_ptr[PointCloud[PointInT]])
+        void setInputNormals (shared_ptr[PointCloud[PointNT]])
+        void setIndices(shared_ptr[PointIndices])
+        void compute(PointCloud[PointOutT])
+        void setKSearch (int k)
+        void setRadiusSearch (double radius)
+
+ctypedef SpinImageEstimation[PointXYZ,Normal,Histogram] SpinImageEstimation_t
+ctypedef PointCloud[Histogram] PointSpinImageCloud_t
 
 cdef extern from "pcl/segmentation/sac_segmentation.h" namespace "pcl":
     cdef cppclass SACSegmentationFromNormals[T, N]:

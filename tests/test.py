@@ -314,10 +314,23 @@ class TestPrincipalCurvatures(unittest.TestCase):
         self.p = pcl.PointCloud()
         self.p.from_file("tests/table_scene_mug_stereo_textured_noplane.pcd")
 
-    def testSegment(self):
+    def testCalc(self):
         directions, eigen_values = self.p.calc_principal_curvatures(50)
 
         self.assertEqual(len(directions), self.p.size)
         self.assertEqual(len(eigen_values), self.p.size)
 
+class TestSpinImage(unittest.TestCase):
+
+    def setUp(self):
+        self.p = pcl.PointCloud()
+        self.p.from_file("tests/table_scene_mug_stereo_textured_noplane.pcd")
+
+    def testCalc(self):
+        spimg = self.p.make_spin_image_feature(10, 50)
+        points = 5
+        spimg.set_indices(range(points))
+        rs = spimg.compute()
+
+        self.assertEqual(points, len(rs))
 
