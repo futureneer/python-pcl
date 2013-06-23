@@ -83,7 +83,7 @@ Python      C++
 tuple       PointXYZ
 tuple       Normal
 np.ndarray  PrincipalCurvature
-tuple       Histogram
+np.ndarray  Histogram
 =========== =====================
 
 API Documentation
