@@ -73,8 +73,18 @@ using Cython is challenging.
 
 It is written in Cython, and implements enough hard bits of the API
 (from Cythons perspective, i.e the template/smart_ptr bits)  to
-provide a foundation for someone wishing to carry on.
+provide a foundation for someone wishing to carry on
 
+Primitive types conversion:
+
+=========== =====================
+Python      C++
+=========== =====================
+tuple       PointXYZ
+tuple       Normal
+np.ndarray  PrincipalCurvature
+tuple       Histogram
+=========== =====================
 
 API Documentation
 =================
