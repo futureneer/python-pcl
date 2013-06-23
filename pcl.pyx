@@ -649,7 +649,7 @@ cdef class SpinImageEstimation:
    
     def __cinit__(self):
         """
-        Constructs octree pointcloud with given resolution at lowest octree level
+        Constructs spin image feature 
         """ 
         self.me = new cpp.SpinImageEstimation_t()
     
@@ -657,6 +657,9 @@ cdef class SpinImageEstimation:
         del self.me
 
     def set_image_width(self, unsigned int width):
+        """
+        Provide a number of bins along one dimension
+        """
         self.me.setImageWidth(width)
 
     def set_input_cloud(self, PointCloud pc):
@@ -668,14 +671,14 @@ cdef class SpinImageEstimation:
 
     def set_input_normals(self, PointCloud pc):
         """
-        Provide a pointer to the input data set.
+        Provide a pointer to the input normals data set.
         """
         cdef cpp.PointNormalCloud_t *ccloud = <cpp.PointNormalCloud_t *>pc.thisptr
         self.me.setInputNormals(ccloud.makeShared())
 
     def set_indices(self, indices):
         """
-        Provide a pointer to the input data set.
+        Provide a set of indices
         """
         cdef cpp.PointIndices* v = new cpp.PointIndices()
         for i in indices:
@@ -684,17 +687,15 @@ cdef class SpinImageEstimation:
 
     def compute(self):
         """
-        Provide a pointer to the input data set.
+        Computes SpinImage feature
         """
         cdef cpp.PointSpinImageCloud_t ccloud
+        cdef int hist_dim = 153 # XXX hardcoded
         self.me.compute(ccloud)
-        rs = []
-        cdef cpp.Histogram hist
+        cdef cnp.ndarray[float, ndim=2] rs = np.zeros(
+            (ccloud.size(), hist_dim), dtype=np.float32)
         for i in range(ccloud.size()):
-            hist = ccloud[i]
-            out = []
-            for b in hist.histogram:
-                out.append(b)
-            rs.append(out)
+            for j in range(hist_dim):
+                rs[i, j] = ccloud[i].histogram[j]
         return rs
 

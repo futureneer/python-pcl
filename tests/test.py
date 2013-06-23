@@ -331,6 +331,5 @@ class TestSpinImage(unittest.TestCase):
         points = 5
         spimg.set_indices(range(points))
         rs = spimg.compute()
-
         self.assertEqual(points, len(rs))
 
