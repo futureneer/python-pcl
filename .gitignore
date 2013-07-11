@@ -32,3 +32,5 @@ pip-log.txt
 
 err.log
 pcl.so
+
+.vagrant
