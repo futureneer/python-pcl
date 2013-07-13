@@ -690,7 +690,12 @@ cdef class SpinImageEstimation:
         Computes SpinImage feature
         """
         cdef cpp.PointSpinImageCloud_t ccloud
-        cdef int hist_dim = 153 # XXX hardcoded
+        # 153 is a dimension of array holding the histogram
+        # it can be adjusted via template thus
+        # no easy way to change it in the runtime
+        # some kind of fused types for template values
+        # would solve problem partially (useful range)
+        cdef int hist_dim = 153
         self.me.compute(ccloud)
         cdef cnp.ndarray[float, ndim=2] rs = np.zeros(
             (ccloud.size(), hist_dim), dtype=np.float32)
