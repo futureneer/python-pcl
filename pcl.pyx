@@ -35,7 +35,7 @@ SACMODEL_TORUS = cpp.SACMODEL_TORUS
 SACMODEL_PARALLEL_LINE = cpp.SACMODEL_PARALLEL_LINE
 SACMODEL_PERPENDICULAR_PLANE = cpp.SACMODEL_PERPENDICULAR_PLANE
 SACMODEL_PARALLEL_LINES = cpp.SACMODEL_PARALLEL_LINES
-SACMODEL_NORMAL_PLANE = cpp.SACMODEL_NORMAL_PLANE 
+SACMODEL_NORMAL_PLANE = cpp.SACMODEL_NORMAL_PLANE
 #SACMODEL_NORMAL_SPHERE = cpp.SACMODEL_NORMAL_SPHERE
 SACMODEL_REGISTRATION = cpp.SACMODEL_REGISTRATION
 SACMODEL_PARALLEL_PLANE = cpp.SACMODEL_PARALLEL_PLANE
@@ -145,7 +145,7 @@ cdef class PointCloud:
         self.thisptr.width = npts
         self.thisptr.height = 1
 
-        cdef i = 0
+        cdef int i = 0
         while i < npts:
             self.thisptr.at(i).x = arr[i,0]
             self.thisptr.at(i).y = arr[i,1]
@@ -156,8 +156,21 @@ cdef class PointCloud:
         """
         Return this object as a 2D numpy array (float32)
         """
-        #FIXME: this could be done more efficinetly, i'm sure
-        return np.array(self.to_list(), dtype=np.float32)
+        cdef int i
+        cdef float x,y,z
+        cdef int n = self.thisptr.size()
+        cdef cnp.ndarray[float, ndim=2] result = np.empty([n,3], dtype=np.float32)
+
+        i = 0
+        while i < n:
+            x = self.thisptr.at(i).x
+            y = self.thisptr.at(i).y
+            z = self.thisptr.at(i).z
+            result[i,0] = x
+            result[i,1] = y
+            result[i,2] = z
+            i = i + 1
+        return result
 
     def from_list(self, _list):
         """
@@ -179,21 +192,7 @@ cdef class PointCloud:
         """
         Return this object as a list of 3-tuples
         """
-        cdef int i
-        cdef float x,y,z
-        cdef int n = self.thisptr.size()
-
-        result = []
-
-        i = 0
-        while i < n:
-            #not efficient, oh well...
-            x = self.thisptr.at(i).x
-            y = self.thisptr.at(i).y
-            z = self.thisptr.at(i).z
-            result.append((x,y,z))
-            i = i + 1
-        return result
+        return self.to_array().tolist()
 
     def resize(self, int x):
         self.thisptr.resize(x)
@@ -209,7 +208,7 @@ cdef class PointCloud:
         cdef y = self.thisptr.at(row,col).y
         cdef z = self.thisptr.at(row,col).z
         return x,y,z
-        
+
     def __getitem__(self, int idx):
         cdef x = self.thisptr.at(idx).x
         cdef y = self.thisptr.at(idx).y
@@ -296,7 +295,7 @@ cdef class PointCloud:
         cdef int n = self.size
 
         k_indices, k_distances = kd.nearest_k_search_for_cloud(self, ksearch)
-        
+
         cdef float x,y,z,pc1,pc2
         cdef vector[int] indices
         indices.resize(ksearch)
@@ -378,7 +377,7 @@ cdef class PointCloud:
 
     def extract(self, pyindices, bool negative=False):
         """
-        Given a list of indices of points in the pointcloud, return a 
+        Given a list of indices of points in the pointcloud, return a
         new pointcloud containing only those points.
         """
         cdef cpp.PointCloud_t *ccloud = <cpp.PointCloud_t *>self.thisptr
@@ -408,7 +407,7 @@ cdef class StatisticalOutlierRemovalFilter:
 
     def set_mean_k(self, int k):
         """
-        Set the number of points (k) to use for mean distance estimation. 
+        Set the number of points (k) to use for mean distance estimation.
         """
         self.me.setMeanK(k)
 
@@ -420,7 +419,7 @@ cdef class StatisticalOutlierRemovalFilter:
 
     def set_negative(self, bool negative):
         """
-        Set whether the indices should be returned, or all points except the indices. 
+        Set whether the indices should be returned, or all points except the indices.
         """
         self.me.setNegative(negative)
 
@@ -447,13 +446,13 @@ cdef class MovingLeastSquares:
 
     def set_search_radius(self, double radius):
         """
-        Set the sphere radius that is to be used for determining the k-nearest neighbors used for fitting. 
+        Set the sphere radius that is to be used for determining the k-nearest neighbors used for fitting.
         """
         self.me.setSearchRadius (radius)
 
     def set_polynomial_order(self, bool order):
         """
-        Set the order of the polynomial to be fit. 
+        Set the order of the polynomial to be fit.
         """
         self.me.setPolynomialOrder(order)
 
@@ -574,18 +573,25 @@ cdef class KdTreeFLANN:
             np_k_indices[i] = k_indices[i]
         return np_k_indices, np_k_sqr_distances
 
+cdef cpp.PointXYZ to_point_t(point):
+    cdef cpp.PointXYZ p
+    p.x = point[0]
+    p.y = point[1]
+    p.z = point[2]
+    return p
+
 cdef class OctreePointCloud:
     """
-    Octree point cloud
+    Octree pointcloud
     """
     cdef cpp.OctreePointCloud_t *me
-   
+
     def __cinit__(self, double resolution):
         """
         Constructs octree pointcloud with given resolution at lowest octree level
-        """ 
+        """
         self.me = new cpp.OctreePointCloud_t(resolution)
-    
+
     def __dealloc__(self):
         del self.me
 
@@ -598,10 +604,10 @@ cdef class OctreePointCloud:
 
     def define_bounding_box(self):
         """
-        Investigate dimensions of pointcloud data set and define corresponding bounding box for octree. 
+        Investigate dimensions of pointcloud data set and define corresponding bounding box for octree.
         """
         self.me.defineBoundingBox()
-        
+
     def define_bounding_box(self, double min_x, double min_y, double min_z, double max_x, double max_y, double max_z):
         """
         Define bounding box for octree. Bounding box cannot be changed once the octree contains elements.
@@ -646,13 +652,13 @@ cdef class OctreePointCloud:
 
 cdef class SpinImageEstimation:
     cdef cpp.SpinImageEstimation_t *me
-   
+
     def __cinit__(self):
         """
-        Constructs spin image feature 
-        """ 
+        Constructs spin image feature
+        """
         self.me = new cpp.SpinImageEstimation_t()
-    
+
     def __dealloc__(self):
         del self.me
 
@@ -699,3 +705,34 @@ cdef class SpinImageEstimation:
                 rs[i, j] = ccloud[i].histogram[j]
         return rs
 
+cdef class OctreePointCloudSearch(OctreePointCloud):
+    """
+    Octree pointcloud search
+    """
+    def __cinit__(self, double resolution):
+        """
+        Constructs octree pointcloud with given resolution at lowest octree level
+        """
+        self.me = <cpp.OctreePointCloud_t*> new cpp.OctreePointCloudSearch_t(resolution)
+
+    def __dealloc__(self):
+        del self.me
+
+    """
+    Search for all neighbors of query point that are within a given radius.
+
+    Returns: (k_indices, k_sqr_distances)
+    """
+    def radius_search (self, point, double radius, unsigned int max_nn = 0):
+        cdef vector[int] k_indices
+        cdef vector[float] k_sqr_distances
+        if max_nn > 0:
+            k_indices.resize(max_nn)
+            k_sqr_distances.resize(max_nn)
+        cdef int k = (<cpp.OctreePointCloudSearch_t*>self.me).radiusSearch(to_point_t(point), radius, k_indices, k_sqr_distances, max_nn)
+        cdef cnp.ndarray[float] np_k_sqr_distances = np.zeros(k, dtype=np.float32)
+        cdef cnp.ndarray[int] np_k_indices = np.zeros(k, dtype=np.int32)
+        for i in range(k):
+            np_k_sqr_distances[i] = k_sqr_distances[i]
+            np_k_indices[i] = k_indices[i]
+        return np_k_indices, np_k_sqr_distances

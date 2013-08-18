@@ -301,7 +301,7 @@ class TestOctreePointCloud(unittest.TestCase):
         rs = self.t.is_voxel_occupied_at_point(good_point)
         self.assertTrue(rs)
         bad_point = (0.5, 0.5, 0.5)
-        rs = self.t.is_voxel_occupied_at_point(bad_point) 
+        rs = self.t.is_voxel_occupied_at_point(bad_point)
         self.assertFalse(rs)
         voxels_len = 44
         self.assertEqual(len(self.t.get_occupied_voxel_centers()), voxels_len)
@@ -333,3 +333,20 @@ class TestSpinImage(unittest.TestCase):
         rs = spimg.compute()
         self.assertEqual(points, len(rs))
 
+class TestOctreePointCloudSearch(unittest.TestCase):
+    def setUp(self):
+        self.t = pcl.OctreePointCloudSearch(0.1)
+        pc = pcl.PointCloud()
+        pc.from_file("tests/table_scene_mug_stereo_textured_noplane.pcd")
+        self.t.set_input_cloud(pc)
+        self.t.define_bounding_box()
+        self.t.add_points_from_input_cloud()
+
+    def testRadiusSearch(self):
+        good_point = (0.035296999, -0.074322999, 1.2074)
+        rs = self.t.radius_search(good_point, 0.5, 1)
+        self.assertEqual(len(rs[0]), 1)
+        self.assertEqual(len(rs[1]), 1)
+        rs = self.t.radius_search(good_point, 0.5)
+        self.assertEqual(len(rs[0]), 19730)
+        self.assertEqual(len(rs[1]), 19730)

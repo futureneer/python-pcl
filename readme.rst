@@ -60,10 +60,10 @@ This work was supported by `Strawlab <http://strawlab.org/>`_.
 Requirements
 ------------
 
-This release has been tested with
+This release has been tested on Ubuntu 12.10 with
 
- * pcl 1.5.1
- * Cython 0.16
+ * pcl 1.5.1-1
+ * Cython 0.16-1 (experimental)
 
 A note about types
 ------------------
@@ -73,8 +73,18 @@ using Cython is challenging.
 
 It is written in Cython, and implements enough hard bits of the API
 (from Cythons perspective, i.e the template/smart_ptr bits)  to
-provide a foundation for someone wishing to carry on.
+provide a foundation for someone wishing to carry on
 
+Primitive types conversion:
+
+=========== =====================
+Python      C++
+=========== =====================
+tuple       PointXYZ
+tuple       Normal
+np.ndarray  PrincipalCurvature
+np.ndarray  Histogram
+=========== =====================
 
 API Documentation
 =================
